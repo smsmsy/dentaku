@@ -131,8 +131,8 @@ void main() {
         act: (bloc) => bloc.add(ToggleSignEvent()),
         expect: () => [
           const CalculatorState(
-            display: '-12.0',
-            currentInput: '-12.0',
+            display: '-12',
+            currentInput: '-12',
             previousInput: '',
           ),
         ],
@@ -149,8 +149,8 @@ void main() {
         act: (bloc) => bloc.add(ToggleSignEvent()),
         expect: () => [
           const CalculatorState(
-            display: '12.0',
-            currentInput: '12.0',
+            display: '12',
+            currentInput: '12',
             previousInput: '',
           ),
         ],
@@ -209,8 +209,8 @@ void main() {
         act: (bloc) => bloc.add(EqualsEvent()),
         expect: () => [
           const CalculatorState(
-            display: '15.0',
-            currentInput: '15.0',
+            display: '15',
+            currentInput: '15',
             previousInput: '',
             result: 15,
           ),
@@ -229,8 +229,8 @@ void main() {
         act: (bloc) => bloc.add(EqualsEvent()),
         expect: () => [
           const CalculatorState(
-            display: '9.0',
-            currentInput: '9.0',
+            display: '9',
+            currentInput: '9',
             previousInput: '',
             result: 9,
           ),
@@ -249,8 +249,8 @@ void main() {
         act: (bloc) => bloc.add(EqualsEvent()),
         expect: () => [
           const CalculatorState(
-            display: '36.0',
-            currentInput: '36.0',
+            display: '36',
+            currentInput: '36',
             previousInput: '',
             result: 36,
           ),
@@ -269,8 +269,8 @@ void main() {
         act: (bloc) => bloc.add(EqualsEvent()),
         expect: () => [
           const CalculatorState(
-            display: '4.0',
-            currentInput: '4.0',
+            display: '4',
+            currentInput: '4',
             previousInput: '',
             result: 4,
           ),
@@ -289,8 +289,8 @@ void main() {
         act: (bloc) => bloc.add(EqualsEvent()),
         expect: () => [
           const CalculatorState(
-            display: '0.0',
-            currentInput: '0.0',
+            display: '0',
+            currentInput: '0',
             previousInput: '',
             result: 0,
           ),
@@ -364,6 +364,229 @@ void main() {
             display: '12',
             currentInput: '12',
             previousInput: '',
+          ),
+        ],
+      );
+    });
+
+    group('CornerCases', () {
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Number: replaces zero with number',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '0',
+          currentInput: '0',
+          previousInput: '',
+        ),
+        act: (bloc) => bloc.add(NumberEvent('5')),
+        expect: () => [
+          const CalculatorState(
+            display: '5',
+            currentInput: '5',
+            previousInput: '',
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Number: keeps zero when zero is pressed',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '0',
+          currentInput: '0',
+          previousInput: '',
+        ),
+        act: (bloc) => bloc.add(NumberEvent('0')),
+        expect: () => <CalculatorState>[],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'DecimalPoint: adds 0. when currentInput is empty',
+        build: () => bloc,
+        act: (bloc) => bloc.add(DecimalPointEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '0.',
+            currentInput: '0.',
+            previousInput: '',
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'DecimalPoint: adds . after 0',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '0',
+          currentInput: '0',
+          previousInput: '',
+        ),
+        act: (bloc) => bloc.add(DecimalPointEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '0.',
+            currentInput: '0.',
+            previousInput: '',
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Operator: replaces operator when pressed consecutively without calculation',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '5',
+          currentInput: '5',
+          previousInput: '',
+          operator: OperatorType.add,
+        ),
+        act: (bloc) => bloc.add(OperatorEvent(OperatorType.multiply)),
+        expect: () => [
+          const CalculatorState(
+            display: '5',
+            currentInput: '',
+            previousInput: '5',
+            operator: OperatorType.multiply,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Equals: repeated equals performs repeated calculation',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '6',
+          currentInput: '6',
+          previousInput: '3',
+          operator: OperatorType.multiply,
+          result: 6,
+        ),
+        act: (bloc) => bloc.add(EqualsEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '18',
+            currentInput: '18',
+            previousInput: '6',
+            operator: OperatorType.multiply,
+            result: 18,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'calculation with decimals',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '2.5',
+          currentInput: '2.5',
+          previousInput: '1.5',
+          operator: OperatorType.add,
+        ),
+        act: (bloc) => bloc.add(EqualsEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '4',
+            currentInput: '4',
+            previousInput: '',
+            result: 4,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'calculation with negative numbers',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '3',
+          currentInput: '3',
+          previousInput: '-5',
+          operator: OperatorType.add,
+        ),
+        act: (bloc) => bloc.add(EqualsEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '-2',
+            currentInput: '-2',
+            previousInput: '',
+            result: -2,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Percent followed by operator',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '0.5',
+          currentInput: '0.5',
+          previousInput: '',
+        ),
+        act: (bloc) => bloc.add(OperatorEvent(OperatorType.add)),
+        expect: () => [
+          const CalculatorState(
+            display: '0.5',
+            currentInput: '',
+            previousInput: '0.5',
+            operator: OperatorType.add,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'ToggleSign on decimal number',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '5.5',
+          currentInput: '5.5',
+          previousInput: '',
+        ),
+        act: (bloc) => bloc.add(ToggleSignEvent()),
+        expect: () => [
+          const CalculatorState(
+            display: '-5.5',
+            currentInput: '-5.5',
+            previousInput: '',
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'continuous calculation after equals',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '3',
+          currentInput: '3',
+          previousInput: '',
+          result: 3,
+        ),
+        act: (bloc) => bloc.add(OperatorEvent(OperatorType.multiply)),
+        expect: () => [
+          const CalculatorState(
+            display: '3',
+            currentInput: '',
+            previousInput: '3',
+            operator: OperatorType.multiply,
+            result: 3,
+          ),
+        ],
+      );
+
+      blocTest<CalculatorBloc, CalculatorState>(
+        'Operator: performs calculation when pressed consecutively',
+        build: () => bloc,
+        seed: () => const CalculatorState(
+          display: '6',
+          currentInput: '6',
+          previousInput: '9',
+          operator: OperatorType.multiply,
+        ),
+        act: (bloc) => bloc.add(OperatorEvent(OperatorType.subtract)),
+        expect: () => [
+          const CalculatorState(
+            display: '54',
+            currentInput: '',
+            previousInput: '54',
+            operator: OperatorType.subtract,
           ),
         ],
       );
