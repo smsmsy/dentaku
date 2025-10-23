@@ -6,12 +6,15 @@ import 'package:dentaku/display_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final initialThemeMode = await ThemeModeCubit.loadThemeMode();
+  runApp(MyApp(initialThemeMode: initialThemeMode));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({required this.initialThemeMode, super.key});
+  final ThemeMode initialThemeMode;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,9 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => CalculatorBloc()),
-        BlocProvider(create: (context) => ThemeModeCubit()),
+        BlocProvider(
+          create: (context) => ThemeModeCubit(initialValue: initialThemeMode),
+        ),
       ],
       child: BlocBuilder<ThemeModeCubit, ThemeMode>(
         builder: (context, themeMode) {

@@ -22,20 +22,19 @@ class CustomThemeData {
 }
 
 class ThemeModeCubit extends Cubit<ThemeMode> {
-  ThemeModeCubit() : super(ThemeMode.system) {
-    unawaited(_loadThemeMode());
-  }
+  ThemeModeCubit({ThemeMode? initialValue})
+    : super(initialValue ?? ThemeMode.system);
 
-  Future<void> _loadThemeMode() async {
+  static Future<ThemeMode> loadThemeMode() async {
     final prefs = SharedPreferencesAsync();
     final savedMode = await prefs.getString('theme_mode');
-    if (savedMode != null) {
-      final themeMode = ThemeMode.values.firstWhere(
-        (mode) => mode.name == savedMode,
-        orElse: () => ThemeMode.system,
-      );
-      emit(themeMode);
-    }
+    final initialThemeMode = savedMode != null
+        ? ThemeMode.values.firstWhere(
+            (mode) => mode.name == savedMode,
+            orElse: () => ThemeMode.system,
+          )
+        : ThemeMode.system;
+    return initialThemeMode;
   }
 
   @override
