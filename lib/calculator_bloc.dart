@@ -1,26 +1,28 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-abstract class CalculatorEvent {}
+enum OperatorType { add, subtract, multiply, divide }
 
-class ClearAll extends CalculatorEvent {}
+sealed class CalculatorEvent {}
 
-class Clear extends CalculatorEvent {}
+final class ClearAll extends CalculatorEvent {}
 
-class Percent extends CalculatorEvent {}
+final class Clear extends CalculatorEvent {}
 
-class Operator extends CalculatorEvent {
-  Operator(this.operator);
-  final String operator;
+final class Percent extends CalculatorEvent {}
+
+final class Operator extends CalculatorEvent {
+  Operator(this.type);
+  final OperatorType type;
 }
 
-class ToggleSign extends CalculatorEvent {}
+final class ToggleSign extends CalculatorEvent {}
 
-class DecimalPoint extends CalculatorEvent {}
+final class DecimalPoint extends CalculatorEvent {}
 
-class Equals extends CalculatorEvent {}
+final class Equals extends CalculatorEvent {}
 
-class Number extends CalculatorEvent {
+final class Number extends CalculatorEvent {
   Number(this.number);
   final String number;
 }
@@ -30,13 +32,13 @@ class CalculatorState extends Equatable {
     required this.display,
     required this.currentInput,
     required this.previousInput,
-    required this.operator,
+    this.operator,
     this.result,
   });
   final String display;
   final String currentInput;
   final String previousInput;
-  final String operator;
+  final OperatorType? operator;
   final double? result;
 
   @override
@@ -52,7 +54,7 @@ class CalculatorState extends Equatable {
     String? display,
     String? currentInput,
     String? previousInput,
-    String? operator,
+    OperatorType? operator,
     double? result,
   }) {
     return CalculatorState(
@@ -72,7 +74,6 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
           display: '0',
           currentInput: '',
           previousInput: '',
-          operator: '',
         ),
       ) {
     on<ClearAll>(_handleClearAll);
@@ -91,7 +92,6 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
         display: '0',
         currentInput: '',
         previousInput: '',
-        operator: '',
       ),
     );
   }
@@ -118,7 +118,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
       emit(
         state.copyWith(
           previousInput: state.currentInput,
-          operator: event.operator,
+          operator: event.type,
           currentInput: '',
         ),
       );
@@ -148,26 +148,25 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
   void _handleEquals(Equals event, Emitter<CalculatorState> emit) {
     if (state.previousInput.isNotEmpty &&
         state.currentInput.isNotEmpty &&
-        state.operator.isNotEmpty) {
+        state.operator != null) {
       final a = double.parse(state.previousInput);
       final b = double.parse(state.currentInput);
       double result = 0;
-      switch (state.operator) {
-        case '+':
+      switch (state.operator!) {
+        case OperatorType.add:
           result = a + b;
-        case '-':
+        case OperatorType.subtract:
           result = a - b;
-        case '×':
+        case OperatorType.multiply:
           result = a * b;
-        case '÷':
+        case OperatorType.divide:
           if (b != 0) result = a / b;
       }
       emit(
-        state.copyWith(
+        CalculatorState(
           display: result.toString(),
           currentInput: result.toString(),
           previousInput: '',
-          operator: '',
           result: result,
         ),
       );
