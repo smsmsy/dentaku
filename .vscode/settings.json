@@ -1,0 +1,10 @@
+{
+    "dart.autoImportCompletions": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "always"
+    },
+    "cSpell.words": [
+        "dentaku",
+        "prefs"
+    ]
+}
