@@ -5,25 +5,25 @@ enum OperatorType { add, subtract, multiply, divide }
 
 sealed class CalculatorEvent {}
 
-final class ClearAll extends CalculatorEvent {}
+final class ClearAllEvent extends CalculatorEvent {}
 
-final class Clear extends CalculatorEvent {}
+final class ClearEvent extends CalculatorEvent {}
 
-final class Percent extends CalculatorEvent {}
+final class PercentEvent extends CalculatorEvent {}
 
-final class Operator extends CalculatorEvent {
-  Operator(this.type);
+final class OperatorEvent extends CalculatorEvent {
+  OperatorEvent(this.type);
   final OperatorType type;
 }
 
-final class ToggleSign extends CalculatorEvent {}
+final class ToggleSignEvent extends CalculatorEvent {}
 
-final class DecimalPoint extends CalculatorEvent {}
+final class DecimalPointEvent extends CalculatorEvent {}
 
-final class Equals extends CalculatorEvent {}
+final class EqualsEvent extends CalculatorEvent {}
 
-final class Number extends CalculatorEvent {
-  Number(this.number);
+final class NumberEvent extends CalculatorEvent {
+  NumberEvent(this.number);
   final String number;
 }
 
@@ -76,17 +76,17 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
           previousInput: '',
         ),
       ) {
-    on<ClearAll>(_handleClearAll);
-    on<Clear>(_handleClear);
-    on<Percent>(_handlePercent);
-    on<Operator>(_handleOperator);
-    on<ToggleSign>(_handleToggleSign);
-    on<DecimalPoint>(_handleDecimalPoint);
-    on<Equals>(_handleEquals);
-    on<Number>(_handleNumber);
+    on<ClearAllEvent>(_handleClearAll);
+    on<ClearEvent>(_handleClear);
+    on<PercentEvent>(_handlePercent);
+    on<OperatorEvent>(_handleOperator);
+    on<ToggleSignEvent>(_handleToggleSign);
+    on<DecimalPointEvent>(_handleDecimalPoint);
+    on<EqualsEvent>(_handleEquals);
+    on<NumberEvent>(_handleNumber);
   }
 
-  void _handleClearAll(ClearAll event, Emitter<CalculatorState> emit) {
+  void _handleClearAll(ClearAllEvent event, Emitter<CalculatorState> emit) {
     emit(
       const CalculatorState(
         display: '0',
@@ -96,11 +96,11 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     );
   }
 
-  void _handleClear(Clear event, Emitter<CalculatorState> emit) {
+  void _handleClear(ClearEvent event, Emitter<CalculatorState> emit) {
     emit(state.copyWith(currentInput: '', display: '0'));
   }
 
-  void _handlePercent(Percent event, Emitter<CalculatorState> emit) {
+  void _handlePercent(PercentEvent event, Emitter<CalculatorState> emit) {
     if (state.currentInput.isNotEmpty) {
       var value = double.parse(state.currentInput);
       value /= 100;
@@ -113,7 +113,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     }
   }
 
-  void _handleOperator(Operator event, Emitter<CalculatorState> emit) {
+  void _handleOperator(OperatorEvent event, Emitter<CalculatorState> emit) {
     if (state.currentInput.isNotEmpty) {
       emit(
         state.copyWith(
@@ -125,7 +125,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     }
   }
 
-  void _handleToggleSign(ToggleSign event, Emitter<CalculatorState> emit) {
+  void _handleToggleSign(ToggleSignEvent event, Emitter<CalculatorState> emit) {
     if (state.currentInput.isNotEmpty) {
       var value = double.parse(state.currentInput);
       value = -value;
@@ -138,14 +138,17 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     }
   }
 
-  void _handleDecimalPoint(DecimalPoint event, Emitter<CalculatorState> emit) {
+  void _handleDecimalPoint(
+    DecimalPointEvent event,
+    Emitter<CalculatorState> emit,
+  ) {
     if (!state.currentInput.contains('.')) {
       final newInput = '${state.currentInput}.';
       emit(state.copyWith(display: newInput, currentInput: newInput));
     }
   }
 
-  void _handleEquals(Equals event, Emitter<CalculatorState> emit) {
+  void _handleEquals(EqualsEvent event, Emitter<CalculatorState> emit) {
     if (state.previousInput.isNotEmpty &&
         state.currentInput.isNotEmpty &&
         state.operator != null) {
@@ -173,7 +176,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     }
   }
 
-  void _handleNumber(Number event, Emitter<CalculatorState> emit) {
+  void _handleNumber(NumberEvent event, Emitter<CalculatorState> emit) {
     final newInput = state.currentInput + event.number;
     emit(
       state.copyWith(
