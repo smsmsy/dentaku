@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class CalculatorEvent {}
@@ -24,8 +25,8 @@ class Number extends CalculatorEvent {
   final String number;
 }
 
-class CalculatorState {
-  CalculatorState({
+class CalculatorState extends Equatable {
+  const CalculatorState({
     required this.display,
     required this.currentInput,
     required this.previousInput,
@@ -37,6 +38,15 @@ class CalculatorState {
   final String previousInput;
   final String operator;
   final double? result;
+
+  @override
+  List<Object?> get props => [
+    display,
+    currentInput,
+    previousInput,
+    operator,
+    result,
+  ];
 
   CalculatorState copyWith({
     String? display,
@@ -58,7 +68,7 @@ class CalculatorState {
 class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
   CalculatorBloc()
     : super(
-        CalculatorState(
+        const CalculatorState(
           display: '0',
           currentInput: '',
           previousInput: '',
@@ -77,7 +87,7 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
 
   void _handleClearAll(ClearAll event, Emitter<CalculatorState> emit) {
     emit(
-      CalculatorState(
+      const CalculatorState(
         display: '0',
         currentInput: '',
         previousInput: '',
