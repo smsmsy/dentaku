@@ -86,6 +86,16 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     on<NumberEvent>(_handleNumber);
   }
 
+  String _formatResult(double result) {
+    // 浮動小数点誤差を避けるために、適当に丸める
+    final rounded = (result * 10000000000).round() / 10000000000;
+    if (rounded == rounded.roundToDouble()) {
+      return rounded.round().toString();
+    } else {
+      return rounded.toString();
+    }
+  }
+
   void _handleClearAll(ClearAllEvent event, Emitter<CalculatorState> emit) {
     emit(
       const CalculatorState(
@@ -104,17 +114,44 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     if (state.currentInput.isNotEmpty) {
       var value = double.parse(state.currentInput);
       value /= 100;
+      final formatted = _formatResult(value);
       emit(
         state.copyWith(
-          display: value.toString(),
-          currentInput: value.toString(),
+          display: formatted,
+          currentInput: formatted,
         ),
       );
     }
   }
 
   void _handleOperator(OperatorEvent event, Emitter<CalculatorState> emit) {
-    if (state.currentInput.isNotEmpty) {
+    if (state.previousInput.isNotEmpty &&
+        state.currentInput.isNotEmpty &&
+        state.operator != null) {
+      // 連続演算子: まず計算を実行
+      final a = double.parse(state.previousInput);
+      final b = double.parse(state.currentInput);
+      double result = 0;
+      switch (state.operator!) {
+        case OperatorType.add:
+          result = a + b;
+        case OperatorType.subtract:
+          result = a - b;
+        case OperatorType.multiply:
+          result = a * b;
+        case OperatorType.divide:
+          if (b != 0) result = a / b;
+      }
+      final formatted = _formatResult(result);
+      emit(
+        state.copyWith(
+          display: formatted,
+          currentInput: '',
+          previousInput: formatted,
+          operator: event.type,
+        ),
+      );
+    } else if (state.currentInput.isNotEmpty) {
       emit(
         state.copyWith(
           previousInput: state.currentInput,
@@ -129,10 +166,11 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     if (state.currentInput.isNotEmpty) {
       var value = double.parse(state.currentInput);
       value = -value;
+      final formatted = _formatResult(value);
       emit(
         state.copyWith(
-          display: value.toString(),
-          currentInput: value.toString(),
+          display: formatted,
+          currentInput: formatted,
         ),
       );
     }
@@ -143,15 +181,43 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
     Emitter<CalculatorState> emit,
   ) {
     if (!state.currentInput.contains('.')) {
-      final newInput = '${state.currentInput}.';
+      final newInput = state.currentInput.isEmpty
+          ? '0.'
+          : '${state.currentInput}.';
       emit(state.copyWith(display: newInput, currentInput: newInput));
     }
   }
 
   void _handleEquals(EqualsEvent event, Emitter<CalculatorState> emit) {
-    if (state.previousInput.isNotEmpty &&
+    if (state.result != null && state.operator != null) {
+      // 繰り返し = の場合
+      final a = double.parse(state.currentInput);
+      final b = double.parse(state.previousInput);
+      double result = 0;
+      switch (state.operator!) {
+        case OperatorType.add:
+          result = a + b;
+        case OperatorType.subtract:
+          result = a - b;
+        case OperatorType.multiply:
+          result = a * b;
+        case OperatorType.divide:
+          if (b != 0) result = a / b;
+      }
+      final formatted = _formatResult(result);
+      emit(
+        CalculatorState(
+          display: formatted,
+          currentInput: formatted,
+          previousInput: state.currentInput,
+          operator: state.operator,
+          result: result,
+        ),
+      );
+    } else if (state.previousInput.isNotEmpty &&
         state.currentInput.isNotEmpty &&
         state.operator != null) {
+      // 通常計算
       final a = double.parse(state.previousInput);
       final b = double.parse(state.currentInput);
       double result = 0;
@@ -165,10 +231,11 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
         case OperatorType.divide:
           if (b != 0) result = a / b;
       }
+      final formatted = _formatResult(result);
       emit(
         CalculatorState(
-          display: result.toString(),
-          currentInput: result.toString(),
+          display: formatted,
+          currentInput: formatted,
           previousInput: '',
           result: result,
         ),
@@ -177,7 +244,16 @@ class CalculatorBloc extends Bloc<CalculatorEvent, CalculatorState> {
   }
 
   void _handleNumber(NumberEvent event, Emitter<CalculatorState> emit) {
-    final newInput = state.currentInput + event.number;
+    String newInput;
+    if (state.currentInput == '0') {
+      if (event.number == '0') {
+        newInput = '0';
+      } else {
+        newInput = event.number;
+      }
+    } else {
+      newInput = state.currentInput + event.number;
+    }
     emit(
       state.copyWith(
         display: newInput,
